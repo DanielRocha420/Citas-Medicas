@@ -3,6 +3,12 @@ package com.daniel.commons.utils;
 import java.math.BigDecimal;
 
 public class ValoresNumericosUtils {
+    public static void validarLongPositivo(Long numero, String mensaje) {
+        validarNumeroRequerido(numero);
+
+        if (numero < 0)
+            throw new IllegalArgumentException(mensaje);
+    }
 
     public static <N extends Number> void validarNumeroRequerido(N numero){
         if (numero == null)

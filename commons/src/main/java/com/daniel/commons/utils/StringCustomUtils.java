@@ -5,16 +5,23 @@ import java.time.format.DateTimeFormatter;
 
 public class StringCustomUtils {
 
+    private static final DateTimeFormatter formato =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-    private static final DateTimeFormatter FORMATO = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
-    public static void validarNoVacio(String texto, String mensaje) {
+    public static void validarNoVacio(
+            String texto,
+            String mensaje) {
         if (texto == null || texto.isBlank()) {
             throw new IllegalArgumentException(mensaje);
         }
     }
 
-    public static void validarTamanio(String texto, Integer min, Integer max, String mensaje) {
+    public static void validarTamanio(
+            String texto,
+            Integer min,
+            Integer max,
+            String mensaje
+    ) {
         validarNoVacio(texto, mensaje);
 
         if (texto.length() < min || texto.length() > max) {
@@ -22,8 +29,19 @@ public class StringCustomUtils {
         }
     }
 
+    public static void validarRango(
+            Integer valor,
+            Integer min,
+            Integer max,
+            String mensaje
+    ) {
+
+        if (valor == 0 || valor < min || valor > max) {
+            throw new IllegalArgumentException(mensaje);
+        }
+    }
+
     public static String quitarAcentos(String texto) {
-        if (texto == null) return null;
         return texto.toLowerCase()
                 .replace("á", "a")
                 .replace("é", "e")
@@ -34,7 +52,6 @@ public class StringCustomUtils {
     }
 
     public static String localDateString(LocalDate fecha) {
-        return fecha == null ? null : fecha.format(FORMATO);
+        return fecha == null ? null : fecha.format(formato);
     }
-
 }
