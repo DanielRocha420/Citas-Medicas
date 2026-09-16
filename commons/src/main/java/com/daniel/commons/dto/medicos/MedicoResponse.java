@@ -1,4 +1,4 @@
-package com.daniel.commons.dto.medico;
+package com.daniel.commons.dto.medicos;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

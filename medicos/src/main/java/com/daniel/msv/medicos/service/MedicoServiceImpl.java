@@ -1,7 +1,7 @@
 package com.daniel.msv.medicos.service;
 
-import com.daniel.commons.dto.medico.MedicoRequest;
-import com.daniel.commons.dto.medico.MedicoResponse;
+import com.daniel.commons.dto.medicos.MedicoRequest;
+import com.daniel.commons.dto.medicos.MedicoResponse;
 import com.daniel.commons.enums.DisponibilidadMedico;
 import com.daniel.commons.enums.EspecialidadMedico;
 import com.daniel.commons.enums.EstadoRegistro;
@@ -84,17 +84,19 @@ public class MedicoServiceImpl implements MedicoService{
         return medicoMapper.entidadAResponse(medicoActualizado); // Se añade la sentencia return que faltaba
     }
     @Override
+    @Transactional
     public void actualizarDisponibilidadMedico(Long idMedico, Long idDisponibilidad) {
         Medico medico = obtenerMedicoActivoPorId(idMedico);
         log.info("Actualizando disponibilidad del medico con id: {}", idMedico);
 
         DisponibilidadMedico nuevaDisponibilidad = DisponibilidadMedico.obtenerDisponibilidadPorCodigo(idDisponibilidad);
-
+        if (nuevaDisponibilidad == null) {
+            throw new IllegalArgumentException("No existe el tipo de disponibilidad con codigo: " + idDisponibilidad);
+        }
         DisponibilidadMedico disponibilidadAnterior = medico.getDisponibilidad();
         medico.actualizarDisponibilidad(nuevaDisponibilidad);
-
-        log.info("Disponibilidad del medico con id {} cambio a {} a {}", idMedico, disponibilidadAnterior, nuevaDisponibilidad);
-
+        medicoRepository.save(medico);
+        log.info("Disponibilidad del medico con id {} cambio de {} a {}", idMedico, disponibilidadAnterior, nuevaDisponibilidad);
     }
 
     @Override

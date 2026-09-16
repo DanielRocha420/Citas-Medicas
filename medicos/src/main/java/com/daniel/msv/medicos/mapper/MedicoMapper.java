@@ -1,7 +1,7 @@
 package com.daniel.msv.medicos.mapper;
 
-import com.daniel.commons.dto.medico.MedicoRequest;
-import com.daniel.commons.dto.medico.MedicoResponse;
+import com.daniel.commons.dto.medicos.MedicoRequest;
+import com.daniel.commons.dto.medicos.MedicoResponse;
 import com.daniel.commons.enums.DisponibilidadMedico;
 import com.daniel.commons.enums.EstadoRegistro;
 import com.daniel.commons.mapper.CommonMapper;
