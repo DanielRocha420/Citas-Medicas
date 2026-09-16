@@ -34,7 +34,15 @@ public class MedicoServiceImpl implements MedicoService{
 
     @Override
     public MedicoResponse obtenerPorId(Long id) {
-        return medicoMapper.entidadAResponse(obtenerMedicoActivoPorId(id));
+        return medicoMapper.entidadAResponse(obtenerMedicoActivoEntidadPorId(id));
+    }
+
+    @Override
+    public MedicoResponse obtenerMedicoActivoPorId(Long id) {
+        log.info("Buscando medico activo con id {}", id);
+        Medico medico = medicoRepository.findByIdAndEstadoRegistro(id, EstadoRegistro.ACTIVO)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Medico activo no encontrado con id: " + id));
+        return medicoMapper.entidadAResponse(medico);
     }
 
     @Override
@@ -62,7 +70,7 @@ public class MedicoServiceImpl implements MedicoService{
     @Override
     @Transactional
     public MedicoResponse actualizar(MedicoRequest request, Long id) {
-        Medico medico = obtenerMedicoActivoPorId(id);
+        Medico medico = obtenerMedicoActivoEntidadPorId(id);
         log.info("Actualizando medico con id: {}", id);
 
         validarCambiosUnicos(request, id);
@@ -86,7 +94,7 @@ public class MedicoServiceImpl implements MedicoService{
     @Override
     @Transactional
     public void actualizarDisponibilidadMedico(Long idMedico, Long idDisponibilidad) {
-        Medico medico = obtenerMedicoActivoPorId(idMedico);
+        Medico medico = obtenerMedicoActivoEntidadPorId(idMedico);
         log.info("Actualizando disponibilidad del medico con id: {}", idMedico);
 
         DisponibilidadMedico nuevaDisponibilidad = DisponibilidadMedico.obtenerDisponibilidadPorCodigo(idDisponibilidad);
@@ -101,13 +109,13 @@ public class MedicoServiceImpl implements MedicoService{
 
     @Override
     public void eliminar(Long id) {
-    Medico medico = obtenerMedicoActivoPorId(id);
+    Medico medico = obtenerMedicoActivoEntidadPorId(id);
     log.info("Eliminado medico con Id: {}", id);
     medico.eliminar();
     log.info("Medico eliminado exitosamente");
     }
 
-    private Medico obtenerMedicoActivoPorId(Long id) {
+    private Medico obtenerMedicoActivoEntidadPorId(Long id) {
         log.info("Buscando medico con id {}", id);
 
         return medicoRepository.findByIdAndEstadoRegistro(id, EstadoRegistro.ACTIVO)

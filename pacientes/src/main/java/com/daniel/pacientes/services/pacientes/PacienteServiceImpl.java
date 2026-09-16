@@ -4,6 +4,7 @@ import com.daniel.commons.dto.paciente.PacienteRequest;
 import com.daniel.commons.dto.paciente.PacienteResponse;
 import com.daniel.pacientes.entities.Paciente;
 import com.daniel.commons.enums.EstadoRegistro;
+import com.daniel.pacientes.clients.CitaClient;
 import com.daniel.pacientes.mappers.PacienteMapper;
 import com.daniel.pacientes.repositories.PacienteRepository;
 import lombok.AllArgsConstructor;
@@ -21,6 +22,7 @@ public class PacienteServiceImpl implements PacienteService {
 
     private final PacienteRepository pacienteRepository;
     private final PacienteMapper pacienteMapper;
+    private final CitaClient citaClient;
 
     @Override
     @Transactional(readOnly = true)
@@ -80,7 +82,7 @@ public class PacienteServiceImpl implements PacienteService {
         Paciente paciente = pacienteRepository.findByIdAndEstadoRegistro(id, EstadoRegistro.ACTIVO)
                 .orElseThrow(() -> new IllegalArgumentException("No se encontró un paciente activo con el id: " + id));
 
-        // Se eliminó la validación local de citas activas por repositorio
+        validarIntegridadConCitas(id);
         validarUnicidad(request, paciente);
 
         paciente.setNombre(request.nombre().trim());
@@ -113,7 +115,7 @@ public class PacienteServiceImpl implements PacienteService {
         Paciente paciente = pacienteRepository.findByIdAndEstadoRegistro(id, EstadoRegistro.ACTIVO)
                 .orElseThrow(() -> new IllegalArgumentException("No se encontró un paciente activo con el id: " + id));
 
-        // Se eliminó la validación local de citas activas por repositorio
+        validarIntegridadConCitas(id);
 
         paciente.setEstadoRegistro(EstadoRegistro.ELIMINADO);
         pacienteRepository.save(paciente);
@@ -122,15 +124,21 @@ public class PacienteServiceImpl implements PacienteService {
 
     private void validarUnicidad(PacienteRequest request, Paciente pacienteExistente) {
         if (pacienteExistente == null || !pacienteExistente.getEmail().equalsIgnoreCase(request.email().trim())) {
-            if (pacienteRepository.existsByEmail(request.email().trim())) {
-                throw new IllegalArgumentException("Ya existe un paciente registrado con el email: " + request.email());
+            if (pacienteRepository.existsByEmailAndEstadoRegistro(request.email().trim(), EstadoRegistro.ACTIVO)) {
+                throw new IllegalArgumentException("Ya existe un paciente activo registrado con el email: " + request.email());
             }
         }
 
         if (pacienteExistente == null || !pacienteExistente.getTelefono().equals(request.telefono().trim())) {
-            if (pacienteRepository.existsByTelefono(request.telefono().trim())) {
-                throw new IllegalArgumentException("Ya existe un paciente registrado con el teléfono: " + request.telefono());
+            if (pacienteRepository.existsByTelefonoAndEstadoRegistro(request.telefono().trim(), EstadoRegistro.ACTIVO)) {
+                throw new IllegalArgumentException("Ya existe un paciente activo registrado con el teléfono: " + request.telefono());
             }
+        }
+    }
+
+    private void validarIntegridadConCitas(Long idPaciente) {
+        if (citaClient.tieneCitasActivas(idPaciente)) {
+            throw new IllegalStateException("No se puede actualizar ni eliminar el paciente porque tiene citas en estado CONFIRMADA o EN_CURSO");
         }
     }
 }

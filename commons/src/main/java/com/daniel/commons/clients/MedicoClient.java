@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 @FeignClient(name = "medicos")
 public interface MedicoClient {
 
-    @GetMapping("/{id}")
+    @GetMapping("/activo/{id}")
     MedicoResponse obtenerMedicoActivoPorId(@PathVariable("id") Long id);
 
     @GetMapping("/id-medico/{id}")
