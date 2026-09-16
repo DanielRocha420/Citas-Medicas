@@ -175,4 +175,15 @@ public class CitaServiceImpl implements CitaService {
                     DisponibilidadMedico.DISPONIBLE.getCodigo());
         }
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean tieneCitasActivas(Long idPaciente) {
+        log.info("Verificando si el paciente {} tiene citas activas", idPaciente);
+        return citaRepository.existsByIdPacienteAndEstadoCitaInAndEstadoRegistro(
+                idPaciente,
+                List.of(EstadoCita.CONFIRMADA, EstadoCita.EN_CURSO),
+                EstadoRegistro.ACTIVO
+        );
+    }
 }

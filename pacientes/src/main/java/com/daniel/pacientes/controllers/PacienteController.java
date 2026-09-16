@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/pacientes")
 @Tag(name = "API Pacientes", description = "Endpoints para la gestión e historial de pacientes")
 public class PacienteController extends CrudController<PacienteRequest, PacienteResponse, PacienteService> {
 
@@ -19,7 +18,7 @@ public class PacienteController extends CrudController<PacienteRequest, Paciente
         super(pacienteService);
     }
 
-    @GetMapping("/sin-estado/{id}")
+    @GetMapping("/id-paciente/{id}")
     @Operation(summary = "Obtener paciente por ID sin validar el estado del registro")
     public ResponseEntity<PacienteResponse> obtenerSinValidarEstado(
             @PathVariable @Positive(message = "El ID debe ser positivo") Long id

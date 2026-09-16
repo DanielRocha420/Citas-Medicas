@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,5 +28,13 @@ public class CitaController extends CrudController<CitaRequest, CitaResponse, Ci
             @PathVariable @Positive(message = "el idEstado debe ser positivo") Long idEstado) {
         service.actualizarEstadoCita(idCita, idEstado);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/validar-paciente/{idPaciente}")
+    @Operation(summary = "Validar si paciente tiene citas activas",
+    description = "Verifica si un paciente tiene citas en estado CONFIRMADA o EN_CURSO")
+    public ResponseEntity<Boolean> tieneCitasActivas(
+            @PathVariable @Positive(message = "el idPaciente debe ser positivo") Long idPaciente) {
+        return ResponseEntity.ok(service.tieneCitasActivas(idPaciente));
     }
 }

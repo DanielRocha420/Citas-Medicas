@@ -7,4 +7,6 @@ import com.daniel.msv.citas.dto.CitaResponse;
 public interface CitaService extends CrudService<CitaRequest, CitaResponse> {
 
     void actualizarEstadoCita(Long idCita, Long idEstadoCita);
+
+    boolean tieneCitasActivas(Long idPaciente);
 }

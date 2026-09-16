@@ -8,10 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Tag(name = "API medicos", description = "Metodos para la gestion de medicos")
@@ -21,9 +18,25 @@ public class MedicoController extends CrudController<MedicoRequest, MedicoRespon
         super(service);
     }
 
+    @GetMapping("/activo/{id}")
+    @Operation(summary = "Obtener medico activo por id")
+    public ResponseEntity<MedicoResponse> obtenerMedicoActivo(
+            @PathVariable @Positive(message = "El ID debe ser positivo") Long id
+    ){
+        return ResponseEntity.ok(service.obtenerMedicoActivoPorId(id));
+    }
+
     @Override
     @Operation(summary = "Obtener medico por id sin importar el estado del registro")
     public ResponseEntity<MedicoResponse> obtenerPorId(
+            @PathVariable @Positive(message = "El ID debe ser positivo") Long id
+    ){
+        return ResponseEntity.ok(service.obtenerMedicoPorIdSinEstado(id));
+    }
+
+    @GetMapping("/id-medico/{id}")
+    @Operation(summary = "Obtener medico por id sin validar estado (endpoint específico)")
+    public ResponseEntity<MedicoResponse> obtenerMedicoSinEstado(
             @PathVariable @Positive(message = "El ID debe ser positivo") Long id
     ){
         return ResponseEntity.ok(service.obtenerMedicoPorIdSinEstado(id));
