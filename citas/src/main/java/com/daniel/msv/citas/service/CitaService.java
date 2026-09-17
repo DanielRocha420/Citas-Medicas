@@ -9,4 +9,6 @@ public interface CitaService extends CrudService<CitaRequest, CitaResponse> {
     void actualizarEstadoCita(Long idCita, Long idEstadoCita);
 
     boolean tieneCitasActivas(Long idPaciente);
+
+    boolean tieneCitasActivasMedico(Long idMedico);
 }

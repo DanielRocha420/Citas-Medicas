@@ -1,5 +1,6 @@
 package com.daniel.msv.medicos.service;
 
+import com.daniel.commons.clients.CitaClient;
 import com.daniel.commons.dto.medicos.MedicoRequest;
 import com.daniel.commons.dto.medicos.MedicoResponse;
 import com.daniel.commons.enums.DisponibilidadMedico;
@@ -22,6 +23,7 @@ import java.util.List;
 public class MedicoServiceImpl implements MedicoService{
     private final MedicoRepository medicoRepository;
     private final MedicoMapper medicoMapper;
+    private final CitaClient citaClient;
 
 
     @Override
@@ -73,6 +75,7 @@ public class MedicoServiceImpl implements MedicoService{
         Medico medico = obtenerMedicoActivoEntidadPorId(id);
         log.info("Actualizando medico con id: {}", id);
 
+        validarIntegridadConCitas(id);
         validarCambiosUnicos(request, id);
 
         medico.actualizar(
@@ -89,7 +92,7 @@ public class MedicoServiceImpl implements MedicoService{
         Medico medicoActualizado = medicoRepository.save(medico);
         log.info("Medico con id {} actualizado correctamente", id);
 
-        return medicoMapper.entidadAResponse(medicoActualizado); // Se añade la sentencia return que faltaba
+        return medicoMapper.entidadAResponse(medicoActualizado);
     }
     @Override
     @Transactional
@@ -101,6 +104,12 @@ public class MedicoServiceImpl implements MedicoService{
         if (nuevaDisponibilidad == null) {
             throw new IllegalArgumentException("No existe el tipo de disponibilidad con codigo: " + idDisponibilidad);
         }
+
+        // Validar que no se pueda cambiar a DISPONIBLE si tiene citas activas
+        if (nuevaDisponibilidad == DisponibilidadMedico.DISPONIBLE) {
+            validarIntegridadConCitas(idMedico);
+        }
+
         DisponibilidadMedico disponibilidadAnterior = medico.getDisponibilidad();
         medico.actualizarDisponibilidad(nuevaDisponibilidad);
         medicoRepository.save(medico);
@@ -111,6 +120,9 @@ public class MedicoServiceImpl implements MedicoService{
     public void eliminar(Long id) {
     Medico medico = obtenerMedicoActivoEntidadPorId(id);
     log.info("Eliminado medico con Id: {}", id);
+
+    validarIntegridadConCitas(id);
+
     medico.eliminar();
     log.info("Medico eliminado exitosamente");
     }
@@ -163,5 +175,11 @@ public class MedicoServiceImpl implements MedicoService{
                 request.cedulaProfesional(), EstadoRegistro.ACTIVO, id))
             throw new IllegalArgumentException("Ya existe un medico activo registrado con la cedula profesonal: "+ request.cedulaProfesional());
 
+    }
+
+    private void validarIntegridadConCitas(Long idMedico) {
+        if (citaClient.tieneCitasActivasMedico(idMedico)) {
+            throw new IllegalArgumentException("No se puede actualizar ni eliminar el médico porque tiene citas en estado CONFIRMADA o EN_CURSO");
+        }
     }
 }

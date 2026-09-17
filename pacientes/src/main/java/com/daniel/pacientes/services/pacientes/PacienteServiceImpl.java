@@ -1,10 +1,10 @@
 package com.daniel.pacientes.services.pacientes;
 
+import com.daniel.commons.clients.CitaClient;
 import com.daniel.commons.dto.paciente.PacienteRequest;
 import com.daniel.commons.dto.paciente.PacienteResponse;
 import com.daniel.pacientes.entities.Paciente;
 import com.daniel.commons.enums.EstadoRegistro;
-import com.daniel.pacientes.clients.CitaClient;
 import com.daniel.pacientes.mappers.PacienteMapper;
 import com.daniel.pacientes.repositories.PacienteRepository;
 import lombok.AllArgsConstructor;
@@ -137,7 +137,7 @@ public class PacienteServiceImpl implements PacienteService {
     }
 
     private void validarIntegridadConCitas(Long idPaciente) {
-        if (citaClient.tieneCitasActivas(idPaciente)) {
+        if (citaClient.tieneCitasActivasPaciente(idPaciente)) {
             throw new IllegalStateException("No se puede actualizar ni eliminar el paciente porque tiene citas en estado CONFIRMADA o EN_CURSO");
         }
     }

@@ -186,4 +186,15 @@ public class CitaServiceImpl implements CitaService {
                 EstadoRegistro.ACTIVO
         );
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean tieneCitasActivasMedico(Long idMedico) {
+        log.info("Verificando si el médico {} tiene citas activas", idMedico);
+        return citaRepository.existsByIdMedicoAndEstadoCitaInAndEstadoRegistro(
+                idMedico,
+                List.of(EstadoCita.CONFIRMADA, EstadoCita.EN_CURSO),
+                EstadoRegistro.ACTIVO
+        );
+    }
 }
