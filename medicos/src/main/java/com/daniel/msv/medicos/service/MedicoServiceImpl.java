@@ -179,7 +179,7 @@ public class MedicoServiceImpl implements MedicoService{
 
     private void validarIntegridadConCitas(Long idMedico) {
         if (citaClient.tieneCitasActivasMedico(idMedico)) {
-            throw new IllegalArgumentException("No se puede actualizar ni eliminar el médico porque tiene citas en estado CONFIRMADA o EN_CURSO");
+            throw new IllegalArgumentException("No se puede actualizar ni eliminar el médico porque tiene citas en estado PENDIENTE, CONFIRMADA o EN_CURSO");
         }
     }
 }
