@@ -138,7 +138,7 @@ public class PacienteServiceImpl implements PacienteService {
 
     private void validarIntegridadConCitas(Long idPaciente) {
         if (citaClient.tieneCitasActivasPaciente(idPaciente)) {
-            throw new IllegalStateException("No se puede actualizar ni eliminar el paciente porque tiene citas en estado CONFIRMADA o EN_CURSO");
+            throw new IllegalStateException("No se puede actualizar ni eliminar el paciente porque tiene citas en estado PENDIENTE, CONFIRMADA o EN_CURSO");
         }
     }
 }
