@@ -42,7 +42,10 @@ public class PacienteServiceImpl implements PacienteService {
     @Override
     @Transactional(readOnly = true)
     public PacienteResponse obtenerPorId(Long id) {
-        return obtenerActivoPorId(id);
+        log.info("Buscando paciente activo con id: {}", id);
+        Paciente paciente = pacienteRepository.findByIdAndEstadoRegistro(id, EstadoRegistro.ACTIVO)
+                .orElseThrow(() -> new IllegalArgumentException("No se encontró un paciente activo con el id: " + id));
+        return pacienteMapper.entidadAResponse(paciente);
     }
 
     @Override
@@ -70,10 +73,10 @@ public class PacienteServiceImpl implements PacienteService {
         validarUnicidad(request, null);
 
         Paciente paciente = pacienteMapper.requestAEntidad(request);
-        pacienteRepository.save(paciente);
-        log.info("Paciente registrado con ID: {} y expediente: {}", paciente.getId(), paciente.getNumExpediente());
+        Paciente pacienteGuardado = pacienteRepository.save(paciente);
+        log.info("Paciente registrado con ID: {} y expediente: {}", pacienteGuardado.getId(), pacienteGuardado.getNumExpediente());
 
-        return pacienteMapper.entidadAResponse(paciente);
+        return pacienteMapper.entidadAResponse(pacienteGuardado);
     }
 
     @Override
@@ -117,28 +120,37 @@ public class PacienteServiceImpl implements PacienteService {
 
         validarIntegridadConCitas(id);
 
-        paciente.setEstadoRegistro(EstadoRegistro.ELIMINADO);
-        pacienteRepository.save(paciente);
-        log.info("Paciente con id {} cambiado a estado ELIMINADO", id);
+        try {
+            paciente.setEstadoRegistro(EstadoRegistro.ELIMINADO);
+            pacienteRepository.save(paciente);
+            log.info("Paciente con id {} cambiado a estado ELIMINADO", id);
+        } catch (Exception e) {
+            log.error("Error al eliminar paciente con id {}. Revertiendo cambio de estado.", id, e);
+            paciente.setEstadoRegistro(EstadoRegistro.ACTIVO);
+            pacienteRepository.save(paciente);
+            throw new IllegalStateException("No se pudo eliminar el paciente. Error: " + e.getMessage(), e);
+        }
     }
 
     private void validarUnicidad(PacienteRequest request, Paciente pacienteExistente) {
-        if (pacienteExistente == null || !pacienteExistente.getEmail().equalsIgnoreCase(request.email().trim())) {
-            if (pacienteRepository.existsByEmailAndEstadoRegistro(request.email().trim(), EstadoRegistro.ACTIVO)) {
-                throw new IllegalArgumentException("Ya existe un paciente activo registrado con el email: " + request.email());
-            }
+        String emailNormalizado = request.email().trim();
+        String telefonoNormalizado = request.telefono().trim();
+
+        boolean esEmailDiferente = pacienteExistente == null || !pacienteExistente.getEmail().equalsIgnoreCase(emailNormalizado);
+        boolean esTelefonoDiferente = pacienteExistente == null || !pacienteExistente.getTelefono().equals(telefonoNormalizado);
+
+        if (esEmailDiferente && pacienteRepository.existsByEmailAndEstadoRegistro(emailNormalizado, EstadoRegistro.ACTIVO)) {
+            throw new IllegalArgumentException("Ya existe un paciente activo registrado con el email: " + request.email());
         }
 
-        if (pacienteExistente == null || !pacienteExistente.getTelefono().equals(request.telefono().trim())) {
-            if (pacienteRepository.existsByTelefonoAndEstadoRegistro(request.telefono().trim(), EstadoRegistro.ACTIVO)) {
-                throw new IllegalArgumentException("Ya existe un paciente activo registrado con el teléfono: " + request.telefono());
-            }
+        if (esTelefonoDiferente && pacienteRepository.existsByTelefonoAndEstadoRegistro(telefonoNormalizado, EstadoRegistro.ACTIVO)) {
+            throw new IllegalArgumentException("Ya existe un paciente activo registrado con el teléfono: " + request.telefono());
         }
     }
 
     private void validarIntegridadConCitas(Long idPaciente) {
         if (citaClient.tieneCitasActivasPaciente(idPaciente)) {
-            throw new IllegalStateException("No se puede actualizar ni eliminar el paciente porque tiene citas en estado PENDIENTE, CONFIRMADA o EN_CURSO");
+            throw new IllegalStateException("No se puede actualizar ni eliminar el paciente porque tiene citas en estado CONFIRMADA o EN_CURSO");
         }
     }
 }

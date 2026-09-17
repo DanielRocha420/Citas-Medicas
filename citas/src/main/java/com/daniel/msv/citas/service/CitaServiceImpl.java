@@ -202,7 +202,7 @@ public class CitaServiceImpl implements CitaService {
         log.info("Verificando si el paciente {} tiene citas activas", idPaciente);
         return citaRepository.existsByIdPacienteAndEstadoCitaInAndEstadoRegistro(
                 idPaciente,
-                List.of(EstadoCita.PENDIENTE, EstadoCita.CONFIRMADA, EstadoCita.EN_CURSO),
+                List.of(EstadoCita.CONFIRMADA, EstadoCita.EN_CURSO),
                 EstadoRegistro.ACTIVO
         );
     }

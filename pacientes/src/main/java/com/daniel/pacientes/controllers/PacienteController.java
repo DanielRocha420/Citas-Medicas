@@ -18,14 +18,6 @@ public class PacienteController extends CrudController<PacienteRequest, Paciente
         super(pacienteService);
     }
 
-    @GetMapping("/activo/{id}")
-    @Operation(summary = "Obtener paciente activo por ID")
-    public ResponseEntity<PacienteResponse> obtenerActivo(
-            @PathVariable @Positive(message = "El ID debe ser positivo") Long id
-    ) {
-        return ResponseEntity.ok(service.obtenerActivoPorId(id));
-    }
-
     @GetMapping("/id-paciente/{id}")
     @Operation(summary = "Obtener paciente por ID sin validar el estado del registro")
     public ResponseEntity<PacienteResponse> obtenerSinValidarEstado(
