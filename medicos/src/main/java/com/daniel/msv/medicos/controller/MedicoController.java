@@ -18,22 +18,6 @@ public class MedicoController extends CrudController<MedicoRequest, MedicoRespon
         super(service);
     }
 
-    @GetMapping("/activo/{id}")
-    @Operation(summary = "Obtener medico activo por id")
-    public ResponseEntity<MedicoResponse> obtenerMedicoActivo(
-            @PathVariable @Positive(message = "El ID debe ser positivo") Long id
-    ){
-        return ResponseEntity.ok(service.obtenerMedicoActivoPorId(id));
-    }
-
-    @Override
-    @Operation(summary = "Obtener medico por id sin importar el estado del registro")
-    public ResponseEntity<MedicoResponse> obtenerPorId(
-            @PathVariable @Positive(message = "El ID debe ser positivo") Long id
-    ){
-        return ResponseEntity.ok(service.obtenerMedicoPorIdSinEstado(id));
-    }
-
     @GetMapping("/id-medico/{id}")
     @Operation(summary = "Obtener medico por id sin validar estado (endpoint específico)")
     public ResponseEntity<MedicoResponse> obtenerMedicoSinEstado(
