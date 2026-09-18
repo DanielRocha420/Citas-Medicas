@@ -10,7 +10,6 @@ import org.hibernate.type.SqlTypes;
 @Entity
 @Table(name = "PACIENTES")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -74,5 +73,32 @@ public class Paciente {
             }
             this.numExpediente = sb.toString();
         }
+    }
+
+    private void validarNoEliminado() {
+        if (this.estadoRegistro == EstadoRegistro.ELIMINADO)
+            throw new IllegalArgumentException("El paciente ya está eliminado");
+    }
+
+    public void eliminar() {
+        validarNoEliminado();
+        this.estadoRegistro = EstadoRegistro.ELIMINADO;
+    }
+
+    public void actualizar(String nombre, String apellidoPaterno, String apellidoMaterno, Short edad, Double peso, Double estatura, String email, String telefono, String direccion) {
+        validarNoEliminado();
+
+        this.nombre = nombre.trim();
+        this.apellidoPaterno = apellidoPaterno.trim();
+        this.apellidoMaterno = apellidoMaterno.trim();
+        this.edad = edad;
+        this.peso = peso;
+        this.estatura = estatura;
+        this.email = email.trim();
+        this.telefono = telefono.trim();
+        this.direccion = direccion.trim();
+
+        calcularImc();
+        generarNumExpediente();
     }
 }

@@ -88,18 +88,17 @@ public class PacienteServiceImpl implements PacienteService {
         validarIntegridadConCitas(id);
         validarUnicidad(request, paciente);
 
-        paciente.setNombre(request.nombre().trim());
-        paciente.setApellidoPaterno(request.apellidoPaterno().trim());
-        paciente.setApellidoMaterno(request.apellidoMaterno().trim());
-        paciente.setEdad(request.edad());
-        paciente.setPeso(request.peso());
-        paciente.setEstatura(request.estatura());
-        paciente.setEmail(request.email().trim());
-        paciente.setTelefono(request.telefono().trim());
-        paciente.setDireccion(request.direccion().trim());
-
-        paciente.calcularImc();
-        paciente.generarNumExpediente();
+        paciente.actualizar(
+                request.nombre(),
+                request.apellidoPaterno(),
+                request.apellidoMaterno(),
+                request.edad(),
+                request.peso(),
+                request.estatura(),
+                request.email(),
+                request.telefono(),
+                request.direccion()
+        );
 
         pacienteRepository.save(paciente);
         log.info("Paciente con id {} actualizado correctamente", id);
@@ -120,16 +119,9 @@ public class PacienteServiceImpl implements PacienteService {
 
         validarIntegridadConCitas(id);
 
-        try {
-            paciente.setEstadoRegistro(EstadoRegistro.ELIMINADO);
-            pacienteRepository.save(paciente);
-            log.info("Paciente con id {} cambiado a estado ELIMINADO", id);
-        } catch (Exception e) {
-            log.error("Error al eliminar paciente con id {}. Revertiendo cambio de estado.", id, e);
-            paciente.setEstadoRegistro(EstadoRegistro.ACTIVO);
-            pacienteRepository.save(paciente);
-            throw new IllegalStateException("No se pudo eliminar el paciente. Error: " + e.getMessage(), e);
-        }
+        paciente.eliminar();
+        pacienteRepository.save(paciente);
+        log.info("Paciente con id {} cambiado a estado ELIMINADO", id);
     }
 
     private void validarUnicidad(PacienteRequest request, Paciente pacienteExistente) {
