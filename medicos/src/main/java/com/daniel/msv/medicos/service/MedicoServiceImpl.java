@@ -104,28 +104,15 @@ public class MedicoServiceImpl implements MedicoService{
         log.info("Actualizando disponibilidad del medico con id: {}", idMedico);
 
         DisponibilidadMedico nuevaDisponibilidad = DisponibilidadMedico.obtenerDisponibilidadPorCodigo(idDisponibilidad);
-        boolean disponibilidadInvalida = nuevaDisponibilidad == null;
-        if (disponibilidadInvalida) {
-            throw new IllegalArgumentException("No existe el tipo de disponibilidad con codigo: " + idDisponibilidad);
-        }
 
         boolean esCambioADisponible = nuevaDisponibilidad == DisponibilidadMedico.DISPONIBLE;
         if (esCambioADisponible) {
             validarIntegridadConCitas(idMedico);
         }
 
-        DisponibilidadMedico disponibilidadAnterior = medico.getDisponibilidad();
-
-        try {
-            medico.actualizarDisponibilidad(nuevaDisponibilidad);
-            medicoRepository.save(medico);
-            log.info("Disponibilidad del medico con id {} cambio de {} a {}", idMedico, disponibilidadAnterior, nuevaDisponibilidad);
-        } catch (Exception e) {
-            log.error("Error al actualizar disponibilidad del médico con id {}. Revertiendo cambio.", idMedico, e);
-            medico.setDisponibilidad(disponibilidadAnterior);
-            medicoRepository.save(medico);
-            throw new IllegalStateException("No se pudo actualizar la disponibilidad del médico. Error: " + e.getMessage(), e);
-        }
+        medico.actualizarDisponibilidad(nuevaDisponibilidad);
+        medicoRepository.save(medico);
+        log.info("Disponibilidad del medico con id {} actualizada a {}", idMedico, nuevaDisponibilidad);
     }
 
     @Override
@@ -135,16 +122,9 @@ public class MedicoServiceImpl implements MedicoService{
 
         validarIntegridadConCitas(id);
 
-        try {
-            medico.eliminar();
-            medicoRepository.save(medico);
-            log.info("Médico eliminado exitosamente");
-        } catch (Exception e) {
-            log.error("Error al eliminar médico con id {}. Revertiendo cambio de estado.", id, e);
-            medico.setEstadoRegistro(EstadoRegistro.ACTIVO);
-            medicoRepository.save(medico);
-            throw new IllegalStateException("No se pudo eliminar el médico. Error: " + e.getMessage(), e);
-        }
+        medico.eliminar();
+        medicoRepository.save(medico);
+        log.info("Médico eliminado exitosamente");
     }
 
     private Medico obtenerMedicoActivoEntidadPorId(Long id) {

@@ -30,7 +30,7 @@ public class CitaServiceImpl implements CitaService {
     private final MedicoClient medicoClient;
     private final PacienteClient pacienteClient;
 
-    private static final List<EstadoCita> ESTADOS_CITAS_ACTIVAS = List.of(EstadoCita.CONFIRMADA, EstadoCita.EN_CURSO);
+    private static final List<EstadoCita> ESTADOS_CITAS_ACTIVAS = List.of(EstadoCita.PENDIENTE, EstadoCita.CONFIRMADA, EstadoCita.EN_CURSO);
     private static final List<EstadoCita> ESTADOS_CITAS_ACTUALIZABLES = List.of(EstadoCita.PENDIENTE, EstadoCita.CONFIRMADA);
 
     @Override
@@ -96,22 +96,34 @@ public class CitaServiceImpl implements CitaService {
             validarPacienteSinCitasActivasExcluyendo(request.idPaciente(), id);
         }
 
-        // Validar cambio de médico
+        // Validar cambio de médico y reutilizar la respuesta
         Long idMedicoAnterior = cita.getIdMedico();
-        if (!idMedicoAnterior.equals(request.idMedico())) {
-            MedicoResponse nuevoMedico = obtenerMedicoActivo(request.idMedico());
-            validarMedicoActivoDisponible(nuevoMedico);
-            // Liberar médico anterior
-            actualizarDisponibilidadMedico(idMedicoAnterior, DisponibilidadMedico.DISPONIBLE.getCodigo());
+        boolean cambioMedico = !idMedicoAnterior.equals(request.idMedico());
+        MedicoResponse medico = null;
+
+        if (cambioMedico) {
+            medico = obtenerMedicoActivo(request.idMedico());
+            validarMedicoActivoDisponible(medico);
+        } else {
+            medico = obtenerMedicoActivo(request.idMedico());
         }
 
-        MedicoResponse medico = obtenerMedicoActivo(request.idMedico());
-
+        // Primero actualizar la cita
         cita.actualizar(
                 request.idPaciente(),
                 request.idMedico(),
                 request.fechaCita(),
                 request.sintomas());
+
+        citaRepository.save(cita);
+
+        // Si todo va bien, ahora sí actualizar disponibilidades
+        if (cambioMedico) {
+            // Liberar médico anterior
+            actualizarDisponibilidadMedico(idMedicoAnterior, DisponibilidadMedico.DISPONIBLE.getCodigo());
+            // Ocupar nuevo médico
+            actualizarDisponibilidadMedico(request.idMedico(), DisponibilidadMedico.NO_DISPONIBLE.getCodigo());
+        }
 
         log.info("Cita actualizada con id: {}", id);
 
@@ -236,7 +248,7 @@ public class CitaServiceImpl implements CitaService {
     private void validarPacienteSinCitasActivas(Long idPaciente) {
         log.info("Validando si el paciente {} tiene citas activas", idPaciente);
         if (tieneCitasActivas(idPaciente)) {
-            throw new IllegalStateException("El paciente ya tiene citas activas en estados CONFIRMADA o EN_CURSO");
+            throw new IllegalStateException("El paciente ya tiene citas activas en estados PENDIENTE, CONFIRMADA o EN_CURSO");
         }
     }
 
@@ -247,7 +259,7 @@ public class CitaServiceImpl implements CitaService {
                 ESTADOS_CITAS_ACTIVAS,
                 EstadoRegistro.ACTIVO,
                 idCitaExcluir)) {
-            throw new IllegalStateException("El paciente ya tiene citas activas en estados CONFIRMADA o EN_CURSO");
+            throw new IllegalStateException("El paciente ya tiene citas activas en estados PENDIENTE, CONFIRMADA o EN_CURSO");
         }
     }
 
