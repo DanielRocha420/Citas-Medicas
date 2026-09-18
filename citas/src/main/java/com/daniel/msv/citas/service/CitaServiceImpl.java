@@ -213,7 +213,7 @@ public class CitaServiceImpl implements CitaService {
         log.info("Verificando si el médico {} tiene citas activas", idMedico);
         return citaRepository.existsByIdMedicoAndEstadoCitaInAndEstadoRegistro(
                 idMedico,
-                List.of(EstadoCita.PENDIENTE, EstadoCita.CONFIRMADA, EstadoCita.EN_CURSO),
+                List.of(EstadoCita.CONFIRMADA, EstadoCita.EN_CURSO),
                 EstadoRegistro.ACTIVO
         );
     }
@@ -231,7 +231,7 @@ public class CitaServiceImpl implements CitaService {
     private void validarPacienteSinCitasActivas(Long idPaciente) {
         log.info("Validando si el paciente {} tiene citas activas", idPaciente);
         if (tieneCitasActivas(idPaciente)) {
-            throw new IllegalStateException("El paciente ya tiene citas activas en estados PENDIENTE, CONFIRMADA o EN_CURSO");
+            throw new IllegalStateException("El paciente ya tiene citas activas en estados CONFIRMADA o EN_CURSO");
         }
     }
 
@@ -239,10 +239,10 @@ public class CitaServiceImpl implements CitaService {
         log.info("Validando si el paciente {} tiene citas activas (excluyendo cita {})", idPaciente, idCitaExcluir);
         if (citaRepository.existsByIdPacienteAndEstadoCitaInAndEstadoRegistroAndIdNot(
                 idPaciente,
-                List.of(EstadoCita.PENDIENTE, EstadoCita.CONFIRMADA, EstadoCita.EN_CURSO),
+                List.of(EstadoCita.CONFIRMADA, EstadoCita.EN_CURSO),
                 EstadoRegistro.ACTIVO,
                 idCitaExcluir)) {
-            throw new IllegalStateException("El paciente ya tiene citas activas en estados PENDIENTE, CONFIRMADA o EN_CURSO");
+            throw new IllegalStateException("El paciente ya tiene citas activas en estados CONFIRMADA o EN_CURSO");
         }
     }
 }
