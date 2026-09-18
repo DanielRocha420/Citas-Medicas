@@ -30,6 +30,9 @@ public class CitaServiceImpl implements CitaService {
     private final MedicoClient medicoClient;
     private final PacienteClient pacienteClient;
 
+    private static final List<EstadoCita> ESTADOS_CITAS_ACTIVAS = List.of(EstadoCita.CONFIRMADA, EstadoCita.EN_CURSO);
+    private static final List<EstadoCita> ESTADOS_CITAS_ACTUALIZABLES = List.of(EstadoCita.PENDIENTE, EstadoCita.CONFIRMADA);
+
     @Override
     public List<CitaResponse> listar() {
         log.info("Listando todas las citas activas");
@@ -84,6 +87,8 @@ public class CitaServiceImpl implements CitaService {
         Cita cita = obtenerCitaOException(id);
 
         log.info("Actualizando cita con id: {}", id);
+
+        validarCitaActualizable(cita);
 
         // Validar cambio de paciente
         if (!cita.getIdPaciente().equals(request.idPaciente())) {
@@ -202,7 +207,7 @@ public class CitaServiceImpl implements CitaService {
         log.info("Verificando si el paciente {} tiene citas activas", idPaciente);
         return citaRepository.existsByIdPacienteAndEstadoCitaInAndEstadoRegistro(
                 idPaciente,
-                List.of(EstadoCita.CONFIRMADA, EstadoCita.EN_CURSO),
+                ESTADOS_CITAS_ACTIVAS,
                 EstadoRegistro.ACTIVO
         );
     }
@@ -213,7 +218,7 @@ public class CitaServiceImpl implements CitaService {
         log.info("Verificando si el médico {} tiene citas activas", idMedico);
         return citaRepository.existsByIdMedicoAndEstadoCitaInAndEstadoRegistro(
                 idMedico,
-                List.of(EstadoCita.CONFIRMADA, EstadoCita.EN_CURSO),
+                ESTADOS_CITAS_ACTIVAS,
                 EstadoRegistro.ACTIVO
         );
     }
@@ -239,10 +244,18 @@ public class CitaServiceImpl implements CitaService {
         log.info("Validando si el paciente {} tiene citas activas (excluyendo cita {})", idPaciente, idCitaExcluir);
         if (citaRepository.existsByIdPacienteAndEstadoCitaInAndEstadoRegistroAndIdNot(
                 idPaciente,
-                List.of(EstadoCita.CONFIRMADA, EstadoCita.EN_CURSO),
+                ESTADOS_CITAS_ACTIVAS,
                 EstadoRegistro.ACTIVO,
                 idCitaExcluir)) {
             throw new IllegalStateException("El paciente ya tiene citas activas en estados CONFIRMADA o EN_CURSO");
+        }
+    }
+
+    private void validarCitaActualizable(Cita cita) {
+        log.info("Validando si la cita con id {} está en estado actualizable", cita.getId());
+        boolean esEstadoActualizable = ESTADOS_CITAS_ACTUALIZABLES.contains(cita.getEstadoCita());
+        if (!esEstadoActualizable) {
+            throw new IllegalStateException("La cita solo se puede actualizar en estados PENDIENTE o CONFIRMADA");
         }
     }
 }
